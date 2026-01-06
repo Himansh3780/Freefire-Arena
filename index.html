@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>FireTourney | Play & Win</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        heading: ['Rajdhani', 'sans-serif'], 
+                        body: ['Inter', 'sans-serif'] 
+                    },
+                    colors: {
+                        'bg-main': '#050505',
+                        'bg-card': '#0a0a0a',
+                        'accent-blue': '#3b82f6',    /* Primary Brand Color */
+                        'accent-green': '#10b981',   /* Success/Money Color */
+                        'accent-gold': '#facc15',    /* Winner Color */
+                        'border-dim': '#ffffff1a'    /* 10% White */
+                    },
+                    animation: { 
+                        'pulse-glow': 'pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' 
+                    },
+                    keyframes: { 
+                        'pulse-glow': { 
+                            '0%, 100%': { opacity: 1, boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)' }, 
+                            '50%': { opacity: .5, boxShadow: '0 0 10px rgba(59, 130, 246, 0.2)' } 
+                        } 
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* BASE STYLES */
+        body { 
+            background-color: #000000; 
+            color: #ffffff; 
+            background-image: 
+                radial-gradient(circle at 50% 0%, #172554 0%, transparent 40%),
+                linear-gradient(to bottom, #000000 0%, #050505 100%);
+        }
+
+        /* GLASS CARD EFFECT */
+        .pro-card {
+            background: rgba(15, 15, 15, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .pro-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-4px);
+        }
+
+        /* NEON TEXT */
+        .neon-blue { text-shadow: 0 0 15px rgba(59, 130, 246, 0.6); }
+        .neon-gold { text-shadow: 0 0 15px rgba(250, 204, 21, 0.5); }
+
+        /* BUTTONS */
+        .btn-join {
+            background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+            transition: all 0.3s;
+        }
+        .btn-join:hover { filter: brightness(1.2); transform: scale(1.02); }
+        .btn-closed { background: #334155; color: #94a3b8; cursor: not-allowed; }
+
+        /* FLOATING ELEMENTS */
+        .float-wa { position: fixed; bottom: 20px; right: 20px; background: #25d366; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 0 20px rgba(37, 211, 102, 0.4); z-index: 50; transition: transform 0.2s; }
+        .float-wa:hover { transform: scale(1.1); }
+
+        /* MODAL */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; backdrop-filter: blur(8px); }
+        .modal-box { background: #0f172a; border: 1px solid #1e293b; width: 90%; max-width: 380px; margin: 15vh auto; border-radius: 16px; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body class="font-body selection:bg-blue-600 selection:text-white">
+
+    <nav class="sticky top-0 z-40 bg-black/80 backdrop-blur-md border-b border-white/5 px-4 py-3">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-gamepad text-blue-500 text-2xl"></i>
+                <span class="font-heading font-bold text-2xl tracking-wide text-white">FIRE<span class="text-blue-500">TOURNEY</span></span>
+            </div>
+            
+            <div>
+                <button id="loginBtn" onclick="openAuthModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(37,99,235,0.4)]">
+                    <i class="fa-solid fa-user mr-2"></i>Login
+                </button>
+
+                <div id="userProfile" class="hidden items-center gap-3 bg-white/5 pr-4 py-1.5 pl-1.5 rounded-full border border-white/10">
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-xs shadow-lg">ID</div>
+                    <div class="flex flex-col">
+                        <span id="userEmail" class="text-[10px] font-bold text-gray-300 uppercase leading-none mb-0.5">Player</span>
+                        <span onclick="logoutUser()" class="text-[9px] text-red-400 cursor-pointer font-bold hover:text-red-300">LOGOUT</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="pt-10 pb-8 px-4 text-center">
+        <h1 class="text-4xl md:text-6xl font-heading font-bold mb-2 uppercase leading-none">
+            Play <span class="text-blue-500 neon-blue">Matches.</span><br>
+            Win <span class="text-green-400">Real Cash.</span>
+        </h1>
+        <p class="text-gray-400 text-sm mb-6">India's #1 Trusted Free Fire Tournament Platform.</p>
+        
+        <div class="inline-block bg-white/5 border border-white/10 px-6 py-3 rounded-xl backdrop-blur-sm">
+            <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-1">NEXT MATCH STARTS IN</span>
+            <span id="countdown" class="text-3xl font-heading font-bold text-white tabular-nums">00:00:00</span>
+        </div>
+    </header>
+
+    <div class="max-w-5xl mx-auto px-4 mb-10">
+        <div class="grid grid-cols-3 gap-2 md:gap-4 text-center">
+            <div class="bg-white/5 rounded-lg p-3 border border-white/5">
+                <div class="text-blue-500 text-xl mb-1"><i class="fa-solid fa-right-to-bracket"></i></div>
+                <div class="font-bold text-xs md:text-sm">1. Join Match</div>
+            </div>
+            <div class="bg-white/5 rounded-lg p-3 border border-white/5">
+                <div class="text-green-400 text-xl mb-1"><i class="fa-brands fa-whatsapp"></i></div>
+                <div class="font-bold text-xs md:text-sm">2. Get ID/Pass</div>
+            </div>
+            <div class="bg-white/5 rounded-lg p-3 border border-white/5">
+                <div class="text-yellow-400 text-xl mb-1"><i class="fa-solid fa-trophy"></i></div>
+                <div class="font-bold text-xs md:text-sm">3. Win Cash</div>
+            </div>
+        </div>
+    </div>
+
+    <section class="max-w-5xl mx-auto px-4 pb-20">
+        <div class="flex items-center gap-2 mb-4">
+            <div class="h-6 w-1 bg-blue-500 rounded-full"></div>
+            <h2 class="font-heading font-bold text-xl uppercase tracking-wider">Upcoming Matches</h2>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+
+            <div class="pro-card rounded-2xl overflow-hidden flex flex-col relative group">
+                <div class="absolute top-0 right-0 z-10">
+                    <span id="badge-1" class="bg-blue-600 text-[10px] font-bold px-3 py-1 rounded-bl-xl text-white uppercase shadow-lg">Upcoming</span>
+                </div>
+
+                <div class="p-5 flex-1">
+                    <div class="flex justify-between items-end mb-4 border-b border-white/5 pb-4">
+                        <div>
+                            <h3 class="text-2xl font-heading font-bold text-white">Starter Match</h3>
+                            <div class="text-xs font-bold text-blue-400 uppercase mt-1">
+                                <i class="fa-regular fa-clock"></i> 04:00 PM &nbsp;|&nbsp; Bermuda
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-crosshairs text-3xl text-white/10"></i>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-5">
+                        <div class="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                            <div class="text-[10px] text-gray-400 uppercase font-bold">Winner Prize</div>
+                            <div class="text-xl font-heading font-bold text-yellow-400">₹200</div>
+                        </div>
+                        <div class="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                            <div class="text-[10px] text-gray-400 uppercase font-bold">MVP Prize</div>
+                            <div class="text-xl font-heading font-bold text-red-400">₹100</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="flex justify-between text-[10px] text-gray-400 mb-1 font-bold">
+                            <span>SPOTS LEFT</span>
+                            <span id="spots-1" class="text-blue-400">Filling Fast</span>
+                        </div>
+                        <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-500 rounded-full" style="width: 65%;"></div>
+                        </div>
+                    </div>
+
+                    <a id="btn-1" href="https://rzp.io/rzp/bjTxI8q" onclick="return checkLogin(event)" class="btn-join block w-full text-white text-center font-bold py-3.5 rounded-xl uppercase tracking-wider text-sm">
+                        Entry Fee: ₹10
+                    </a>
+                </div>
+            </div>
+
+            <div class="pro-card rounded-2xl overflow-hidden flex flex-col relative border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.1)]">
+                <div class="absolute top-0 left-0 bg-yellow-500 text-black text-[10px] font-bold px-3 py-1 rounded-br-xl z-10">HOT 🔥</div>
+                <div class="absolute top-0 right-0 z-10">
+                    <span id="badge-2" class="bg-blue-600 text-[10px] font-bold px-3 py-1 rounded-bl-xl text-white uppercase shadow-lg">Upcoming</span>
+                </div>
+
+                <div class="p-5 flex-1">
+                    <div class="flex justify-between items-end mb-4 border-b border-white/5 pb-4">
+                        <div>
+                            <h3 class="text-2xl font-heading font-bold text-white neon-blue">Warrior Battle</h3>
+                            <div class="text-xs font-bold text-blue-400 uppercase mt-1">
+                                <i class="fa-regular fa-clock"></i> 07:00 PM &nbsp;|&nbsp; Purgatory
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-crown text-3xl text-yellow-500/20"></i>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-5">
+                        <div class="bg-white/5 rounded-lg p-2 text-center border border-yellow-500/20">
+                            <div class="text-[10px] text-gray-400 uppercase font-bold">Winner Prize</div>
+                            <div class="text-xl font-heading font-bold text-yellow-400">₹400</div>
+                        </div>
+                        <div class="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                            <div class="text-[10px] text-gray-400 uppercase font-bold">MVP Prize</div>
+                            <div class="text-xl font-heading font-bold text-red-400">₹200</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="flex justify-between text-[10px] text-gray-400 mb-1 font-bold">
+                            <span>SPOTS LEFT</span>
+                            <span id="spots-2" class="text-yellow-400">Almost Full</span>
+                        </div>
+                        <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-yellow-500 rounded-full" style="width: 85%;"></div>
+                        </div>
+                    </div>
+
+                    <a id="btn-2" href="https://rzp.io/rzp/freefire20" onclick="return checkLogin(event)" class="btn-join block w-full text-white text-center font-bold py-3.5 rounded-xl uppercase tracking-wider text-sm" style="background: linear-gradient(90deg, #eab308 0%, #ca8a04 100%); box-shadow: 0 4px 15px rgba(234, 179, 8, 0.3);">
+                        Entry Fee: ₹20
+                    </a>
+                </div>
+            </div>
+
+            <div class="pro-card rounded-2xl overflow-hidden flex flex-col relative">
+                <div class="absolute top-0 right-0 z-10">
+                    <span id="badge-3" class="bg-blue-600 text-[10px] font-bold px-3 py-1 rounded-bl-xl text-white uppercase shadow-lg">Upcoming</span>
+                </div>
+
+                <div class="p-5 flex-1">
+                    <div class="flex justify-between items-end mb-4 border-b border-white/5 pb-4">
+                        <div>
+                            <h3 class="text-2xl font-heading font-bold text-white">Pro League</h3>
+                            <div class="text-xs font-bold text-blue-400 uppercase mt-1">
+                                <i class="fa-regular fa-clock"></i> 09:00 PM &nbsp;|&nbsp; Bermuda
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-skull text-3xl text-white/10"></i>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-5">
+                        <div class="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                            <div class="text-[10px] text-gray-400 uppercase font-bold">Winner Prize</div>
+                            <div class="text-xl font-heading font-bold text-yellow-400">₹1,000</div>
+                        </div>
+                        <div class="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                            <div class="text-[10px] text-gray-400 uppercase font-bold">MVP Prize</div>
+                            <div class="text-xl font-heading font-bold text-red-400">₹400</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="flex justify-between text-[10px] text-gray-400 mb-1 font-bold">
+                            <span>SPOTS LEFT</span>
+                            <span id="spots-3" class="text-red-400">Opening Soon</span>
+                        </div>
+                        <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-red-600 rounded-full" style="width: 30%;"></div>
+                        </div>
+                    </div>
+
+                    <a id="btn-3" href="https://rzp.io/rzp/freefire50" onclick="return checkLogin(event)" class="btn-join block w-full text-white text-center font-bold py-3.5 rounded-xl uppercase tracking-wider text-sm" style="background: linear-gradient(90deg, #dc2626 0%, #b91c1c 100%); box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);">
+                        Entry Fee: ₹50
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <footer class="border-t border-white/10 bg-black pt-10 pb-6 px-4">
+        <div class="max-w-5xl mx-auto text-center">
+            <h4 class="font-heading font-bold text-2xl text-white mb-2">FIRE<span class="text-blue-500">TOURNEY</span></h4>
+            <p class="text-xs text-gray-500 mb-6">Play Fair. Win Big. Instant Withdrawals.</p>
+            
+            <div class="flex justify-center gap-6 text-xs text-gray-400 mb-6 font-bold uppercase">
+                <a onclick="openModal('rules')" class="hover:text-blue-500 cursor-pointer">Rules</a>
+                <a onclick="openModal('privacy')" class="hover:text-blue-500 cursor-pointer">Privacy</a>
+                <a onclick="openModal('refund')" class="hover:text-blue-500 cursor-pointer">Refunds</a>
+            </div>
+            
+            <div class="text-[10px] text-gray-600">
+                &copy; 2026 FireTourney India. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <a id="wa-link" href="#" target="_blank" class="float-wa">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <div id="authModal" class="modal-overlay">
+        <div class="modal-box p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="authTitle" class="text-xl font-heading font-bold text-white">LOGIN</h3>
+                <button onclick="closeAuthModal()" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="authForm" class="flex flex-col gap-4">
+                <input type="email" id="authEmail" class="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white text-sm focus:border-blue-500 outline-none" placeholder="Email" required>
+                <input type="password" id="authPass" class="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white text-sm focus:border-blue-500 outline-none" placeholder="Password" required>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm uppercase">Enter</button>
+            </form>
+            <p id="toggleAuthMode" class="text-center text-xs text-gray-400 mt-4 cursor-pointer hover:text-white">
+                No account? <span class="text-blue-400 font-bold">Register Now</span>
+            </p>
+            <p id="authError" class="text-red-500 text-center text-xs mt-3 font-bold"></p>
+        </div>
+    </div>
+
+    <div id="infoModal" class="modal-overlay" onclick="if(event.target === this) closeModal()">
+        <div class="modal-box p-6">
+            <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                <h3 class="font-heading font-bold text-blue-500 text-lg">INFO</h3>
+                <button onclick="closeModal()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="modalBody" class="text-sm text-gray-300 space-y-3"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // 1. CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyCBeLkcCws6IRTIUztKMDCQztK8-os1pZM", // REPLACE THIS
+            authDomain: "ludo-7753c.firebaseapp.com",
+            projectId: "ludo-7753c",
+            storageBucket: "ludo-7753c.firebasestorage.app",
+            messagingSenderId: "780949213750",
+            appId: "1:780949213750:web:c54afff4efd44948163e97"
+        };
+        const ADMIN_PHONE = "919876543210";
+        
+        // 2. TIMING SYSTEM (The Brain)
+        const MATCHES = [
+            { id: 1, hour: 16 }, // 4 PM
+            { id: 2, hour: 19 }, // 7 PM
+            { id: 3, hour: 21 }  // 9 PM
+        ];
+
+        // 3. INIT
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        // 4. UI UPDATE LOOP
+        function updateUI() {
+            const now = new Date();
+            const h = now.getHours();
+
+            // Countdown Logic
+            const nextMatch = MATCHES.find(m => m.hour > h);
+            const targetH = nextMatch ? nextMatch.hour : (MATCHES[0].hour + 24);
+            const targetDate = new Date();
+            if(!nextMatch) targetDate.setDate(targetDate.getDate() + 1);
+            targetDate.setHours(targetH, 0, 0, 0);
+            
+            const diff = targetDate - now;
+            const hh = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const mm = Math.floor((diff / (1000 * 60)) % 60);
+            const ss = Math.floor((diff / 1000) % 60);
+            document.getElementById('countdown').innerText = 
+                `${hh.toString().padStart(2,'0')}:${mm.toString().padStart(2,'0')}:${ss.toString().padStart(2,'0')}`;
+
+            // Buttons & Labels Logic
+            MATCHES.forEach(match => {
+                const btn = document.getElementById(`btn-${match.id}`);
+                const badge = document.getElementById(`badge-${match.id}`);
+                const spots = document.getElementById(`spots-${match.id}`);
+                
+                // Logic: 
+                // 1. Before Match: "JOIN NOW" (Green/Blue)
+                // 2. During Match (1 hour window): "LIVE" (Red)
+                // 3. After Match: "ENDED" (Grey)
+                
+                if (h >= match.hour && h < match.hour + 1) {
+                    // LIVE
+                    badge.innerText = "LIVE NOW";
+                    badge.className = "bg-red-600 text-[10px] font-bold px-3 py-1 rounded-bl-xl text-white uppercase animate-pulse";
+                    btn.innerText = "MATCH IN PROGRESS";
+                    btn.className = "btn-closed block w-full text-center font-bold py-3.5 rounded-xl uppercase text-sm";
+                    btn.onclick = (e) => e.preventDefault();
+                } else if (h >= match.hour + 1) {
+                    // ENDED
+                    badge.innerText = "ENDED";
+                    badge.className = "bg-gray-600 text-[10px] font-bold px-3 py-1 rounded-bl-xl text-white uppercase";
+                    btn.innerText = "CLOSED";
+                    btn.className = "btn-closed block w-full text-center font-bold py-3.5 rounded-xl uppercase text-sm";
+                    btn.onclick = (e) => e.preventDefault();
+                } else {
+                    // UPCOMING (Default State)
+                    badge.innerText = "OPEN";
+                    badge.className = "bg-green-500 text-[10px] font-bold px-3 py-1 rounded-bl-xl text-black uppercase";
+                }
+            });
+        }
+        setInterval(updateUI, 1000);
+        updateUI();
+
+        // 5. WHATSAPP
+        document.getElementById('wa-link').href = `https://wa.me/${ADMIN_PHONE}`;
+
+        // 6. AUTH SYSTEM
+        const authModal = document.getElementById('authModal');
+        let isLogin = true;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('loginBtn').classList.add('hidden');
+                document.getElementById('userProfile').classList.remove('hidden');
+                document.getElementById('userProfile').classList.add('flex');
+                document.getElementById('userEmail').innerText = user.email.split('@')[0];
+            } else {
+                document.getElementById('loginBtn').classList.remove('hidden');
+                document.getElementById('userProfile').classList.add('hidden');
+                document.getElementById('userProfile').classList.remove('flex');
+            }
+        });
+
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const pass = document.getElementById('authPass').value;
+            const err = document.getElementById('authError');
+            err.innerText = "Verifying...";
+            try {
+                if(isLogin) await signInWithEmailAndPassword(auth, email, pass);
+                else await createUserWithEmailAndPassword(auth, email, pass);
+                window.closeAuthModal();
+                err.innerText = "";
+            } catch(error) { err.innerText = "Error: " + error.message; }
+        });
+
+        document.getElementById('toggleAuthMode').addEventListener('click', () => {
+            isLogin = !isLogin;
+            document.getElementById('authTitle').innerText = isLogin ? "LOGIN" : "REGISTER";
+            document.getElementById('toggleAuthMode').innerHTML = isLogin ? 
+                `No account? <span class="text-blue-400 font-bold">Register Now</span>` : 
+                `Have account? <span class="text-blue-400 font-bold">Login Here</span>`;
+        });
+
+        // Global Exports
+        window.openAuthModal = () => authModal.style.display = 'block';
+        window.closeAuthModal = () => authModal.style.display = 'none';
+        window.logoutUser = () => signOut(auth);
+        window.checkLogin = (e) => {
+            if(!auth.currentUser) {
+                e.preventDefault();
+                window.openAuthModal();
+                document.getElementById('authError').innerText = "Please Login First!";
+                return false;
+            }
+            return true;
+        }
+
+        // Info Modal
+        const policies = {
+            rules: "<h3>1. Tie-Breaker</h3><p>Equal kills? Higher rank wins.</p><h3>2. Proof</h3><p>Winner must send screenshot to WhatsApp.</p>",
+            privacy: "<h3>Data</h3><p>Your ID is safe. We never share data.</p>",
+            refund: "<h3>Refunds</h3><p>Allowed if match is cancelled by Admin.</p>"
+        };
+        window.openModal = (t) => {
+            document.getElementById('modalBody').innerHTML = policies[t];
+            document.getElementById('infoModal').style.display = 'block';
+        }
+        window.closeModal = () => document.getElementById('infoModal').style.display = 'none';
+
+    </script>
+</body>
+</html>
