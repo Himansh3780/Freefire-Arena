@@ -420,12 +420,28 @@
         }
         window.addEventListener('load', () => setTimeout(showTgModal, 2500));
 
-        const policies = {
-            terms: "<h3>Terms & Conditions</h3><p>Participation restricted to users 18+. One account per user. We reserve the right to ban cheaters.</p>",
-            refund: "<h3>Refund Policy</h3><p>Refunds are only issued if a match is cancelled by the admin. No refunds for player disconnection.</p>",
-            privacy: "<h3>Privacy Policy</h3><p>We do not share your data. Phone numbers are used for Room ID distribution only via WhatsApp.</p>",
-            rules: "<h3>Rules</h3><ul class='list-disc pl-5 mt-2'><li>No Teaming.</li><li>No Hacks/Scripts.</li><li>Emulator not allowed.</li><li>Winner must send screenshot proof.</li></ul>"
-        };
+        const policies = {// 5. INFO/POLICY MODAL CONTENT
+const policies = {
+    terms: "<h3>Terms & Conditions</h3><p>Participation restricted to users 18+. One account per user. We reserve the right to ban cheaters without refund.</p>",
+    
+    refund: "<h3>Refund Policy</h3><p>Refunds are only issued if a match is cancelled by the admin. No refunds for player disconnection or lag issues.</p>",
+    
+    privacy: "<h3>Privacy Policy</h3><p>We do not share your data. Phone numbers are used for Room ID distribution only.</p>",
+    
+    // UPDATED RULES SECTION
+    rules: `
+        <h3 class='text-blue-500 font-bold text-lg mb-2'>⚠️ Tournament Rules</h3>
+        <ul class='list-disc pl-5 space-y-2'>
+            <li><b>Zero Tolerance:</b> No Teaming, No Hacking, No Scripts. Result = Instant Ban.</li>
+            <li><b>Device:</b> Mobile Only. Emulators are strictly prohibited.</li>
+            <li><b>Proof:</b> Winners must send a screenshot of the results to the Telegram Admin to claim prizes.</li>
+            <li class='text-yellow-500 font-bold border border-yellow-500/30 p-2 rounded bg-yellow-500/10'>
+                💰 Prize Pool Clause: The announced Prize Pool is based on a full lobby (48 players). If participation is low (less than 40 players), the Prize Pool will be adjusted/reduced accordingly.
+            </li>
+        </ul>
+    `
+};
+;
         window.openModal = (type) => {
             const titleMap = { terms: "Terms", refund: "Refunds", privacy: "Privacy", rules: "Rules" };
             document.getElementById('modalTitle').innerText = titleMap[type] || "Info";
