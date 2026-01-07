@@ -31,21 +31,67 @@
     </script>
 
     <style>
-        body { background-color: #000; color: #fff; -webkit-tap-highlight-color: transparent; padding-bottom: 90px; }
-        .glass-header { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
-        .match-card { background: #0a0a0a; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; position: relative; overflow: hidden; transition: transform 0.2s; }
+        /* APP FEEL */
+        body { 
+            background-color: #000; 
+            color: #fff; 
+            -webkit-tap-highlight-color: transparent; 
+            padding-bottom: 90px; /* Space for Bottom Nav */
+        }
+
+        /* GLASS HEADER */
+        .glass-header {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* CARD DESIGN */
+        .match-card {
+            background: #0a0a0a;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
         .match-card:active { transform: scale(0.98); } 
+
+        /* BADGES & ANIMATIONS */
         .badge-live { background: #ef4444; animation: pulse 1.5s infinite; }
         
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-around; padding: 12px 0; z-index: 50; padding-bottom: env(safe-area-inset-bottom); }
-        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: #6b7280; transition: color 0.3s; }
+        /* BOTTOM NAV */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            z-index: 50;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 10px;
+            color: #6b7280;
+            transition: color 0.3s;
+        }
         .nav-item.active { color: #3b82f6; }
         .nav-item i { font-size: 20px; margin-bottom: 4px; }
 
+        /* MODAL POPUPS */
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 60; backdrop-filter: blur(5px); justify-content: center; align-items: center; padding: 20px; }
         .modal-box { background: #111; border: 1px solid #333; width: 100%; max-width: 350px; border-radius: 20px; padding: 24px; animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
+        /* FOOTER STYLES */
         .site-footer { background-color: #050505; border-top: 1px solid rgba(255, 255, 255, 0.1); color: #94a3b8; padding: 40px 20px; font-size: 14px; margin-top: 40px; }
         .footer-heading { color: #3b82f6; font-family: 'Rajdhani', sans-serif; font-weight: 700; text-transform: uppercase; margin-bottom: 15px; font-size: 18px; letter-spacing: 1px; }
         .footer-links a { color: #cbd5e1; text-decoration: none; display: block; margin-bottom: 8px; cursor: pointer; }
@@ -73,6 +119,7 @@
         <h1 class="text-4xl font-heading font-bold uppercase leading-none mb-2">
             Play <span class="text-blue-500">Smart.</span><br>Win <span class="text-brand-gold">Cash.</span>
         </h1>
+        
         <div class="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 mt-2">
             <span class="relative flex h-2 w-2">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -99,7 +146,8 @@
         </div>
     </div>
 
-    <div id="match-container" class="px-4 space-y-5"></div>
+    <div id="match-container" class="px-4 space-y-5">
+        </div>
 
     <footer class="site-footer w-full">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -119,7 +167,10 @@
             </div>
             <div>
                 <div class="footer-heading">Support</div>
-                <p class="mb-2"><strong>Telegram:</strong> <a href="https://t.me/FreeFirearena0" target="_blank" class="text-blue-400 hover:text-blue-300">Join Channel</a></p>
+                <p class="mb-2">
+                    <strong>Telegram:</strong> 
+                    <a href="https://t.me/FreeFirearena0" target="_blank" class="text-blue-400 hover:text-blue-300">Join Channel</a>
+                </p>
                 <p class="mb-2"><strong>Email:</strong> support@firetourney.in</p>
                 <p><strong>Hours:</strong> 10:00 AM – 10:00 PM</p>
             </div>
@@ -155,19 +206,27 @@
             </div>
             <h3 class="font-heading font-bold text-2xl text-white mb-1 uppercase">Official Channel</h3>
             <p class="text-xs text-[#229ED9] font-bold mb-4 uppercase tracking-widest">For Winners & Updates</p>
+            
             <div class="bg-gray-900 border border-gray-700 rounded-lg p-3 mb-5 text-left flex gap-3">
                 <div class="text-yellow-500 text-lg"><i class="fa-solid fa-triangle-exclamation"></i></div>
                 <div>
                     <p class="text-[11px] text-gray-300 leading-tight">
                         <b class="text-white">Looking for Room ID?</b><br>
-                        Join the Telegram channel. We post ID & Password <b>OPENLY</b> for free matches.
+                        You must join the <b>WhatsApp Community</b>. The link was sent to your <b>Email</b> after payment.
                     </p>
                 </div>
             </div>
-            <a href="https://t.me/FreeFirearena0" target="_blank" onclick="markTgJoined()" class="block w-full bg-[#229ED9] text-white font-bold py-3.5 rounded-xl uppercase text-sm mb-3 shadow-lg">Join Telegram</a>
+
+            <a href="https://t.me/FreeFirearena0" target="_blank" onclick="markTgJoined()" class="block w-full bg-[#229ED9] text-white font-bold py-3.5 rounded-xl uppercase text-sm mb-3 shadow-lg">
+                Join Telegram
+            </a>
             <button onclick="closeTgModal()" class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Close Popup</button>
         </div>
     </div>
+
+    <a href="https://t.me/FreeFirearena0" target="_blank" class="float-wa" style="position:fixed; bottom:100px; right:20px; background:#229ED9; width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-center; z-index:90; box-shadow:0 5px 20px rgba(34,158,217,0.4);">
+        <i class="fa-brands fa-telegram text-white text-2xl"></i>
+    </a>
 
     <div id="authModal" class="modal-overlay">
         <div class="modal-box text-center">
@@ -196,23 +255,23 @@
     <script>
         
         // /// ⚡ ADMIN CONTROL PANEL ⚡ ///
-        // UPDATED PRICES AND FREE MATCH
+        // EDIT THESE VALUES TO UPDATE YOUR WEBSITE INSTANTLY
         
         const ADMIN_CONTROLS = [
             {
                 id: 1,
-                name: "Forest Match (Free)",
+                name: "Starter Match",
                 timeDisplay: "04:00 PM",
                 map: "Bermuda",
                 status: "OPEN", 
                 
-                // UPDATED: Free Entry
+                // FREE MATCH
                 entryFee: 0,
-                prizePool: 100, // Small prize to attract users
+                prizePool: 100, 
                 winnerPrize: 70,
                 mvpPrize: 30,
                 
-                // UPDATED: Telegram Link instead of Razorpay
+                // TELEGRAM LINK (No Payment)
                 link: "https://t.me/FreeFirearena0",
                 isFree: true,
                 spotsFilled: 12 
@@ -224,13 +283,13 @@
                 map: "Purgatory",
                 status: "OPEN", 
                 
-                // UPDATED: ₹20 -> ₹50
+                // ₹50 ENTRY
                 entryFee: 50,
-                prizePool: 1500, // Scaled up
+                prizePool: 1500,
                 winnerPrize: 1000,
                 mvpPrize: 500,
                 
-                link: "https://rzp.io/rzp/freefire50", // Changed link ID for safety
+                link: "https://rzp.io/rzp/freefire50",
                 spotsFilled: 32,
                 isPopular: true
             },
@@ -241,19 +300,19 @@
                 map: "Bermuda",
                 status: "OPEN",
                 
-                // UPDATED: ₹50 -> ₹100
+                // ₹100 ENTRY
                 entryFee: 100,
-                prizePool: 3000, // Scaled up
+                prizePool: 3000,
                 winnerPrize: 2000,
                 mvpPrize: 1000,
                 
-                link: "https://rzp.io/rzp/freefire100", // Changed link ID for safety
+                link: "https://rzp.io/rzp/freefire100", 
                 spotsFilled: 4
             }
         ];
 
         // ----------------------------------------------
-        //      SYSTEM LOGIC (DO NOT EDIT BELOW)
+        //      SYSTEM LOGIC
         // ----------------------------------------------
 
         const container = document.getElementById('match-container');
@@ -267,7 +326,6 @@
                 if(match.status === "OPEN") {
                     badgeClass = "bg-blue-600 text-white";
                     badgeText = "OPEN";
-                    // If Free, show special Green Button
                     if (match.isFree) {
                         btnClass = "bg-green-600 active:bg-green-700 text-white shadow-[0_0_15px_rgba(34,197,94,0.4)]";
                         btnText = "JOIN FOR FREE (TELEGRAM)";
@@ -293,7 +351,6 @@
                     btnText = "CLOSED";
                 }
 
-                // Calculate Width %
                 const widthPct = (match.spotsFilled / 48) * 100;
                 let spotColor = "text-blue-400";
                 if(match.spotsFilled > 40) spotColor = "text-red-500";
@@ -420,28 +477,23 @@
         }
         window.addEventListener('load', () => setTimeout(showTgModal, 2500));
 
-        const policies = {// 5. INFO/POLICY MODAL CONTENT
-const policies = {
-    terms: "<h3>Terms & Conditions</h3><p>Participation restricted to users 18+. One account per user. We reserve the right to ban cheaters without refund.</p>",
-    
-    refund: "<h3>Refund Policy</h3><p>Refunds are only issued if a match is cancelled by the admin. No refunds for player disconnection or lag issues.</p>",
-    
-    privacy: "<h3>Privacy Policy</h3><p>We do not share your data. Phone numbers are used for Room ID distribution only.</p>",
-    
-    // UPDATED RULES SECTION
-    rules: `
-        <h3 class='text-blue-500 font-bold text-lg mb-2'>⚠️ Tournament Rules</h3>
-        <ul class='list-disc pl-5 space-y-2'>
-            <li><b>Zero Tolerance:</b> No Teaming, No Hacking, No Scripts. Result = Instant Ban.</li>
-            <li><b>Device:</b> Mobile Only. Emulators are strictly prohibited.</li>
-            <li><b>Proof:</b> Winners must send a screenshot of the results to the Telegram Admin to claim prizes.</li>
-            <li class='text-yellow-500 font-bold border border-yellow-500/30 p-2 rounded bg-yellow-500/10'>
-                💰 Prize Pool Clause: The announced Prize Pool is based on a full lobby (48 players). If participation is low (less than 40 players), the Prize Pool will be adjusted/reduced accordingly.
-            </li>
-        </ul>
-    `
-};
-;
+        // RULES & MODALS (Updated with Prize Pool Clause)
+        const policies = {
+            terms: "<h3>Terms & Conditions</h3><p>Participation restricted to users 18+. One account per user. We reserve the right to ban cheaters.</p>",
+            refund: "<h3>Refund Policy</h3><p>Refunds are only issued if a match is cancelled by the admin. No refunds for player disconnection.</p>",
+            privacy: "<h3>Privacy Policy</h3><p>We do not share your data. Phone numbers are used for Room ID distribution only via WhatsApp.</p>",
+            rules: `
+                <h3 class='text-blue-500 font-bold text-lg mb-2'>⚠️ Tournament Rules</h3>
+                <ul class='list-disc pl-5 space-y-2'>
+                    <li><b>Zero Tolerance:</b> No Teaming, No Hacking, No Scripts. Result = Instant Ban.</li>
+                    <li><b>Device:</b> Mobile Only. Emulators are strictly prohibited.</li>
+                    <li><b>Proof:</b> Winners must send a screenshot of the results to the Telegram Admin to claim prizes.</li>
+                    <li class='text-yellow-500 font-bold border border-yellow-500/30 p-2 rounded bg-yellow-500/10'>
+                        💰 Prize Pool Clause: The announced Prize Pool is based on a full lobby (48 players). If participation is low (less than 40 players), the Prize Pool will be adjusted/reduced accordingly.
+                    </li>
+                </ul>
+            `
+        };
         window.openModal = (type) => {
             const titleMap = { terms: "Terms", refund: "Refunds", privacy: "Privacy", rules: "Rules" };
             document.getElementById('modalTitle').innerText = titleMap[type] || "Info";
@@ -449,13 +501,14 @@ const policies = {
             document.getElementById('infoModal').style.display = 'flex';
         }
         window.closeModal = () => document.getElementById('infoModal').style.display = 'none';
+
     </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         
-        // REPLACE API KEY IF YOU WANT REAL LOGIN
+        // REPLACE WITH YOUR API KEY
         const firebaseConfig = {
             apiKey: "AIzaSyCBeLkcCws6IRTIUztKMDCQztK8-os1pZM", 
             authDomain: "ludo-7753c.firebaseapp.com",
@@ -467,7 +520,6 @@ const policies = {
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        // SYNC FIREBASE WITH LOCAL UI
         onAuthStateChanged(auth, (user) => {
             if(user) {
                 localStorage.setItem('ft_user', user.email);
