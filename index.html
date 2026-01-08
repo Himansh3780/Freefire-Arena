@@ -300,7 +300,6 @@
 
         // ---------------------------------------------------------
         // 🛠️ ADMIN: MAINTENANCE MODE
-        // Set 'enabled' to true to close the app for everyone
         // ---------------------------------------------------------
         const ADMIN_MAINTENANCE = {
             enabled: false, // Change this to TRUE to turn on maintenance
@@ -339,8 +338,10 @@
                 map: "Purgatory",
                 status: "OPEN", 
                 entryFee: 50, 
-                prizePool: 1500,
+                prizePool: 1575,
                 winnerPrize: 1000,
+                secondPrize: 50, // Added 2nd Prize
+                thirdPrize: 25,  // Added 3rd Prize
                 mvpPrize: 500,
                 spotsFilled: 32,
                 isPopular: true
@@ -352,8 +353,10 @@
                 map: "Bermuda",
                 status: "OPEN",
                 entryFee: 100,
-                prizePool: 3000,
+                prizePool: 3150,
                 winnerPrize: 2000,
+                secondPrize: 100, // Added 2nd Prize
+                thirdPrize: 50,   // Added 3rd Prize
                 mvpPrize: 1000,
                 spotsFilled: 4
             }
@@ -364,7 +367,7 @@
             if (ADMIN_MAINTENANCE.enabled) {
                 document.getElementById('maintenance-screen').style.display = 'flex';
                 document.getElementById('maintenance-msg').innerText = ADMIN_MAINTENANCE.message;
-                document.body.style.overflow = 'hidden'; // Stop scrolling
+                document.body.style.overflow = 'hidden'; 
             }
         }
         checkMaintenance();
@@ -530,6 +533,23 @@
                 let spotColor = "text-blue-400";
                 if(match.spotsFilled > 40) spotColor = "text-red-500";
 
+                // --- BUILD EXTRA PRIZES HTML ---
+                let extraPrizesHtml = '';
+                if (match.secondPrize > 0) {
+                    extraPrizesHtml += `
+                        <div class="bg-white/5 rounded-lg p-2 flex items-center gap-2 border border-white/5">
+                            <i class="fa-solid fa-medal text-gray-300 ml-1"></i>
+                            <div><div class="text-[9px] text-gray-400 uppercase">2nd Rank</div><div class="text-sm font-bold">₹${match.secondPrize}</div></div>
+                        </div>`;
+                }
+                if (match.thirdPrize > 0) {
+                    extraPrizesHtml += `
+                        <div class="bg-white/5 rounded-lg p-2 flex items-center gap-2 border border-white/5">
+                            <i class="fa-solid fa-medal text-orange-700 ml-1"></i>
+                            <div><div class="text-[9px] text-gray-400 uppercase">3rd Rank</div><div class="text-sm font-bold">₹${match.thirdPrize}</div></div>
+                        </div>`;
+                }
+
                 const html = `
                 <div class="match-card ${match.isPopular ? 'border-brand-gold/30' : ''}">
                     ${match.isPopular ? '<div class="absolute top-0 left-0 bg-brand-gold text-black text-[9px] font-bold px-3 py-1 rounded-br-xl z-10">POPULAR</div>' : ''}
@@ -558,6 +578,7 @@
                                 <i class="fa-solid fa-skull text-red-500 ml-1"></i>
                                 <div><div class="text-[9px] text-gray-400 uppercase">MVP</div><div class="text-sm font-bold">₹${match.mvpPrize}</div></div>
                             </div>
+                            ${extraPrizesHtml}
                         </div>
                         <div class="flex justify-between text-[10px] text-gray-400 mb-1 font-bold"><span>SPOTS</span><span class="${spotColor}">${48 - match.spotsFilled} Left</span></div>
                         <div class="h-1 bg-white/10 rounded-full mb-4 overflow-hidden"><div class="h-full ${match.isPopular ? 'bg-yellow-500' : 'bg-blue-600'}" style="width: ${widthPct}%"></div></div>
