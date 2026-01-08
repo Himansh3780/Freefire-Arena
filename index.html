@@ -341,8 +341,8 @@
             color: "yellow" 
         };
 
-        // 3. PAYMENT SETTINGS
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVM_GUO8bykcmEE4ZP4aQ950J5wgQIENVBBTvx6YwjX8dCaB280IAQ4I6I9tUXiCH92Q/exec";
+        // 3. PAYMENT SETTINGS - UPDATED LINK
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzIr0e8EcBRpuFYqHzXscY2Bj9g0zAUt48YAKjmGLNPKkbgICINJLVqJ_ahLY0ioAYE/exec";
         const ADMIN_NUMBER = "919294931405"; // Your WhatsApp
         const MY_UPI_ID = "9294931405@ybl"; // Your UPI
 
@@ -498,7 +498,7 @@
 
         window.closePayModal = () => document.getElementById('payModal').style.display = 'none';
 
-        // 4. HANDLE PAYMENT FORM SUBMIT
+        // 4. HANDLE PAYMENT FORM SUBMIT (FIXED TO SEND JSON)
         document.getElementById('payForm').addEventListener('submit', (e) => {
             e.preventDefault();
             
@@ -508,19 +508,25 @@
 
             const uName = document.getElementById('uName').value;
             const uGameId = document.getElementById('uGameId').value;
-            const uUPI = document.getElementById('uUPI').value; // Get UPI Value
+            const uUPI = document.getElementById('uUPI').value;
             const uUTR = document.getElementById('uUTR').value;
 
-            const formData = new FormData();
-            formData.append("name", uName);
-            formData.append("gameId", uGameId);
-            formData.append("upi", uUPI); // Send UPI to sheet
-            formData.append("utr", uUTR);
-            formData.append("amount", pendingAmount);
-            formData.append("match", pendingMatchName);
+            // FIX: Create a clean JSON Object
+            const dataObj = {
+                name: uName,
+                gameId: uGameId,
+                upi: uUPI,
+                utr: uUTR,
+                amount: pendingAmount,
+                match: pendingMatchName,
+                date: new Date().toLocaleString()
+            };
 
-            // Send Data to Google Sheet
-            fetch(GOOGLE_SCRIPT_URL, { method: "POST", body: formData })
+            // FIX: Send as JSON String to bypass CORS
+            fetch(GOOGLE_SCRIPT_URL, { 
+                method: "POST", 
+                body: JSON.stringify(dataObj) 
+            })
             .then(res => {
                 // Redirect User to WhatsApp
                 const msg = `*NEW PAYMENT*%0A------------------%0A*Match:* ${pendingMatchName}%0A*Amount:* ₹${pendingAmount}%0A*Name:* ${uName}%0A*ID:* ${uGameId}%0A*User UPI:* ${uUPI}%0A*UTR:* ${uUTR}%0A------------------%0A_Please verify my payment and send me the Group Link._`;
@@ -528,9 +534,9 @@
                 window.location.href = `https://wa.me/${ADMIN_NUMBER}?text=${msg}`;
             })
             .catch(err => {
-                alert("Network Error. Please check your internet.");
-                btn.disabled = false;
-                btn.innerText = "Verify on WhatsApp";
+                // If fetch fails (network), still redirect as backup
+                const msg = `*NEW PAYMENT*%0A------------------%0A*Match:* ${pendingMatchName}%0A*Amount:* ₹${pendingAmount}%0A*Name:* ${uName}%0A*ID:* ${uGameId}%0A*User UPI:* ${uUPI}%0A*UTR:* ${uUTR}%0A------------------%0A_Please verify my payment and send me the Group Link._`;
+                window.location.href = `https://wa.me/${ADMIN_NUMBER}?text=${msg}`;
             });
         });
 
