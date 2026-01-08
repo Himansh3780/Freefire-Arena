@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -253,10 +255,13 @@
     </div>
 
     <script>
-        
-        // /// ⚡ ADMIN CONTROL PANEL ⚡ ///
-        // EDIT THESE VALUES TO UPDATE YOUR WEBSITE INSTANTLY
-        
+        // ---------------------------------------------------------
+        // ⚡ ADMIN: PASTE YOUR RAZORPAY KEY HERE
+        // ---------------------------------------------------------
+        const RAZORPAY_KEY_ID = "PASTE_YOUR_KEY_ID_HERE"; 
+        // Example: "rzp_test_1234567890"
+        // ---------------------------------------------------------
+
         const ADMIN_CONTROLS = [
             {
                 id: 1,
@@ -264,17 +269,13 @@
                 timeDisplay: "04:00 PM",
                 map: "Bermuda",
                 status: "OPEN", 
-                
-                // FREE MATCH
                 entryFee: 0,
                 prizePool: 100, 
                 winnerPrize: 70,
                 mvpPrize: 30,
-                
-                // TELEGRAM LINK (No Payment)
-                link: "https://t.me/FreeFirearena0",
                 isFree: true,
-                spotsFilled: 12 
+                spotsFilled: 12,
+                telegramLink: "https://t.me/FreeFirearena0"
             },
             {
                 id: 2,
@@ -282,14 +283,10 @@
                 timeDisplay: "07:00 PM",
                 map: "Purgatory",
                 status: "OPEN", 
-                
-                // ₹50 ENTRY
-                entryFee: 50,
+                entryFee: 50, 
                 prizePool: 1500,
                 winnerPrize: 1000,
                 mvpPrize: 500,
-                
-                link: "https://rzp.io/rzp/hdggggg54djr",
                 spotsFilled: 32,
                 isPopular: true
             },
@@ -299,29 +296,68 @@
                 timeDisplay: "09:00 PM",
                 map: "Bermuda",
                 status: "OPEN",
-                
-                // ₹100 ENTRY
                 entryFee: 100,
                 prizePool: 3000,
                 winnerPrize: 2000,
                 mvpPrize: 1000,
-                
-                link: "https://rzp.io/rzp/freefire100", 
                 spotsFilled: 4
             }
         ];
 
         // ----------------------------------------------
-        //      SYSTEM LOGIC
+        //       PAYMENT & SYSTEM LOGIC
         // ----------------------------------------------
 
         const container = document.getElementById('match-container');
         
+        // --- RAZORPAY POPUP FUNCTION ---
+        function startPayment(matchName, amount) {
+            if (!localStorage.getItem('ft_user')) {
+                openAuthModal();
+                return;
+            }
+
+            var options = {
+                "key": RAZORPAY_KEY_ID, 
+                "amount": amount * 100, // Amount in paise
+                "currency": "INR",
+                "name": "FireTourney",
+                "description": "Entry for " + matchName,
+                "image": "https://cdn-icons-png.flaticon.com/512/1055/1055666.png",
+                "handler": function (response){
+                    // Success Callback
+                    // response.razorpay_payment_id
+                    // response.razorpay_order_id
+                    // response.razorpay_signature
+
+                    alert("Payment Successful! ID: " + response.razorpay_payment_id);
+                    
+                    // Open Telegram/Info Modal after success
+                    showTgModal();
+                },
+                "prefill": {
+                    "email": localStorage.getItem('ft_user') || "",
+                    "contact": "" 
+                },
+                "theme": {
+                    "color": "#2563eb"
+                }
+            };
+            
+            var rzp1 = new Razorpay(options);
+            
+            rzp1.on('payment.failed', function (response){
+                alert("Payment Failed: " + response.error.description);
+            });
+
+            rzp1.open();
+        }
+
         function renderMatches() {
             container.innerHTML = "";
             ADMIN_CONTROLS.forEach(match => {
                 let badgeClass = "", badgeText = "", btnClass = "", btnText = "";
-                let isClickable = false;
+                let buttonAction = "";
 
                 if(match.status === "OPEN") {
                     badgeClass = "bg-blue-600 text-white";
@@ -329,26 +365,31 @@
                     if (match.isFree) {
                         btnClass = "bg-green-600 active:bg-green-700 text-white shadow-[0_0_15px_rgba(34,197,94,0.4)]";
                         btnText = "JOIN FOR FREE (TELEGRAM)";
+                        buttonAction = `window.open('${match.telegramLink}', '_blank')`;
                     } else {
                         btnClass = "bg-blue-600 active:bg-blue-700 text-white shadow-glow-blue";
                         btnText = `Join for ₹${match.entryFee}`;
+                        // Trigger Razorpay Popup
+                        buttonAction = `startPayment('${match.name}', ${match.entryFee})`;
                     }
-                    isClickable = true;
                 } else if (match.status === "FULL") {
                     badgeClass = "bg-red-600 text-white";
                     badgeText = "FULL";
                     btnClass = "bg-gray-800 text-gray-500 cursor-not-allowed";
                     btnText = "SEATS FULL";
+                    buttonAction = "return false;";
                 } else if (match.status === "LIVE") {
                     badgeClass = "bg-red-600 text-white animate-pulse";
                     badgeText = "LIVE NOW";
                     btnClass = "bg-gray-800 text-gray-500 cursor-not-allowed";
                     btnText = "MATCH STARTED";
+                    buttonAction = "return false;";
                 } else {
                     badgeClass = "bg-gray-700 text-gray-400";
                     badgeText = "ENDED";
                     btnClass = "bg-gray-800 text-gray-500 cursor-not-allowed";
                     btnText = "CLOSED";
+                    buttonAction = "return false;";
                 }
 
                 const widthPct = (match.spotsFilled / 48) * 100;
@@ -387,9 +428,9 @@
                         <div class="flex justify-between text-[10px] text-gray-400 mb-1 font-bold"><span>SPOTS</span><span class="${spotColor}">${48 - match.spotsFilled} Left</span></div>
                         <div class="h-1 bg-white/10 rounded-full mb-4 overflow-hidden"><div class="h-full ${match.isPopular ? 'bg-yellow-500' : 'bg-blue-600'}" style="width: ${widthPct}%"></div></div>
                         
-                        <a href="${isClickable ? match.link : '#'}" onclick="return handleJoin(event, ${isClickable})" class="block w-full ${btnClass} text-center font-bold py-3 rounded-xl uppercase text-xs tracking-wider transition-all">
+                        <button onclick="${buttonAction}" class="block w-full ${btnClass} text-center font-bold py-3 rounded-xl uppercase text-xs tracking-wider transition-all">
                             ${btnText}
-                        </a>
+                        </button>
                     </div>
                 </div>`;
                 container.innerHTML += html;
@@ -450,22 +491,10 @@
         window.logoutUser = () => { localStorage.removeItem('ft_user'); checkLoginState(); }
         window.handleAccountClick = () => { if(localStorage.getItem('ft_user')) logoutUser(); else openAuthModal(); }
 
-        window.handleJoin = (e, isClickable) => {
-            if(!isClickable) { e.preventDefault(); return false; }
-            if(!localStorage.getItem('ft_user')) {
-                e.preventDefault();
-                openAuthModal();
-                return false;
-            }
-            return true;
-        }
-
         const tgModal = document.getElementById('tgModal');
         window.showTgModal = () => {
-            if(!localStorage.getItem('tg_joined')) {
-                tgModal.style.display = 'flex';
-                setTimeout(() => tgModal.style.opacity = '1', 100);
-            }
+            tgModal.style.display = 'flex';
+            setTimeout(() => tgModal.style.opacity = '1', 100);
         }
         window.markTgJoined = () => {
             localStorage.setItem('tg_joined', 'true');
@@ -475,9 +504,12 @@
             tgModal.style.opacity = '0';
             setTimeout(() => tgModal.style.display = 'none', 300);
         }
-        window.addEventListener('load', () => setTimeout(showTgModal, 2500));
+        // Auto show TG modal on first load after 2.5s if not joined
+        if(!localStorage.getItem('tg_joined')) {
+            window.addEventListener('load', () => setTimeout(showTgModal, 2500));
+        }
 
-        // RULES & MODALS (Updated with Prize Pool Clause)
+        // RULES & MODALS
         const policies = {
             terms: "<h3>Terms & Conditions</h3><p>Participation restricted to users 18+. One account per user. We reserve the right to ban cheaters.</p>",
             refund: "<h3>Refund Policy</h3><p>Refunds are only issued if a match is cancelled by the admin. No refunds for player disconnection.</p>",
@@ -502,32 +534,6 @@
         }
         window.closeModal = () => document.getElementById('infoModal').style.display = 'none';
 
-    </script>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        
-        // REPLACE WITH YOUR API KEY
-        const firebaseConfig = {
-            apiKey: "AIzaSyCBeLkcCws6IRTIUztKMDCQztK8-os1pZM", 
-            authDomain: "ludo-7753c.firebaseapp.com",
-            projectId: "ludo-7753c",
-            storageBucket: "ludo-7753c.firebasestorage.app",
-            messagingSenderId: "780949213750",
-            appId: "1:780949213750:web:c54afff4efd44948163e97"
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        onAuthStateChanged(auth, (user) => {
-            if(user) {
-                localStorage.setItem('ft_user', user.email);
-                document.getElementById('loginBtn').classList.add('hidden');
-                document.getElementById('userProfile').classList.remove('hidden');
-                document.getElementById('userProfile').classList.add('flex');
-            }
-        });
     </script>
 </body>
 </html>
