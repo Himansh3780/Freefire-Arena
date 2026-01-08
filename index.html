@@ -103,6 +103,22 @@
 </head>
 <body class="font-body">
 
+    <div id="maintenance-screen" class="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-6 text-center" style="display: none;">
+        <div class="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-6 animate-pulse">
+            <i class="fa-solid fa-screwdriver-wrench text-4xl text-brand-gold"></i>
+        </div>
+        <h1 class="text-3xl font-heading font-bold text-white mb-2 uppercase tracking-wide">Under Maintenance</h1>
+        <p id="maintenance-msg" class="text-gray-400 text-sm max-w-xs leading-relaxed mb-8">
+            We are currently updating our servers to provide you with a better gaming experience.
+        </p>
+        <button onclick="window.location.reload()" class="bg-blue-600 px-6 py-3 rounded-xl font-bold text-sm uppercase shadow-glow-blue hover:bg-blue-700 transition-all">
+            Check Again
+        </button>
+        <a href="https://wa.me/919294931405" target="_blank" class="mt-6 text-xs text-green-500 font-bold uppercase tracking-widest hover:text-green-400">
+            Contact Support
+        </a>
+    </div>
+
     <nav class="glass-header sticky top-0 z-40 px-4 py-3 flex justify-between items-center">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white font-bold text-sm shadow-glow-blue">FT</div>
@@ -204,6 +220,23 @@
         </div>
     </div>
 
+    <div id="complianceModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 class="text-xl font-heading font-bold text-white mb-2">⚠️ CONFIRMATION</h3>
+            <p class="text-xs text-gray-400 mb-4">To continue with payment, please confirm:</p>
+            
+            <label class="flex gap-3 items-start bg-white/5 p-3 rounded-lg border border-white/10 mb-4 cursor-pointer">
+                <input type="checkbox" id="legalCheck" class="mt-1 w-4 h-4 rounded accent-blue-600">
+                <span class="text-xs text-gray-300 leading-tight">
+                    I am <b>18 years or older</b> and I am <b>NOT playing</b> from Telangana, Andhra Pradesh, Assam, Odisha, Sikkim, or Nagaland.
+                </span>
+            </label>
+
+            <button id="confirmPayBtn" class="bg-blue-600 w-full py-3 rounded-xl font-bold text-sm uppercase opacity-50 cursor-not-allowed">Proceed to Pay</button>
+            <button onclick="closeComplianceModal()" class="w-full mt-3 text-xs text-gray-500 font-bold uppercase">Cancel</button>
+        </div>
+    </div>
+
     <div id="waModal" class="modal-overlay flex" style="display:none; opacity:0; transition:opacity 0.3s;">
         <div class="modal-box text-center border border-brand-wa" style="box-shadow: 0 0 30px rgba(37,211,102,0.15);">
             <div class="mx-auto w-14 h-14 bg-brand-wa rounded-full flex items-center justify-center mb-4 shadow-[0_0_15px_#25D366] animate-pulse">
@@ -266,16 +299,23 @@
         // ---------------------------------------------------------
 
         // ---------------------------------------------------------
+        // 🛠️ ADMIN: MAINTENANCE MODE
+        // Set 'enabled' to true to close the app for everyone
+        // ---------------------------------------------------------
+        const ADMIN_MAINTENANCE = {
+            enabled: false, // Change this to TRUE to turn on maintenance
+            message: "We are updating our servers. Please check back in 30 minutes!"
+        };
+
+        // ---------------------------------------------------------
         // 📢 ADMIN: MESSAGE / UPDATE BOX
-        // Edit this section to show updates on your website
         // ---------------------------------------------------------
         const ADMIN_UPDATE_BOX = {
-            show: true, // Set to 'false' to hide the box
+            show: true, 
             title: "📢 DAILY UPDATES",
             text: "Welcome Fighters! Match 3 (Pro League) is starting at 9:00 PM. Join fast before spots fill up!",
-            color: "yellow" // Options: "yellow", "red", "blue", "green"
+            color: "yellow" 
         };
-        // ---------------------------------------------------------
 
         const ADMIN_CONTROLS = [
             {
@@ -319,6 +359,16 @@
             }
         ];
 
+        // CHECK MAINTENANCE
+        function checkMaintenance() {
+            if (ADMIN_MAINTENANCE.enabled) {
+                document.getElementById('maintenance-screen').style.display = 'flex';
+                document.getElementById('maintenance-msg').innerText = ADMIN_MAINTENANCE.message;
+                document.body.style.overflow = 'hidden'; // Stop scrolling
+            }
+        }
+        checkMaintenance();
+
         // RENDER MESSAGE BOX
         function renderMsgBox() {
             const box = document.getElementById('msg-box-container');
@@ -326,16 +376,13 @@
                 box.style.display = 'none';
                 return;
             }
-
             const colorMap = {
                 yellow: { border: 'border-yellow-500/50', icon: 'text-yellow-500', title: 'text-yellow-500' },
                 red:    { border: 'border-red-500/50',    icon: 'text-red-500',    title: 'text-red-500' },
                 blue:   { border: 'border-blue-500/50',   icon: 'text-blue-500',   title: 'text-blue-500' },
                 green:  { border: 'border-green-500/50',  icon: 'text-green-500',  title: 'text-green-500' }
             };
-            
             const theme = colorMap[ADMIN_UPDATE_BOX.color] || colorMap.yellow;
-
             box.innerHTML = `
                 <div class="bg-white/5 border ${theme.border} rounded-xl p-3 flex gap-3 items-start shadow-lg">
                     <div class="text-xl ${theme.icon} animate-pulse mt-0.5">
@@ -352,23 +399,73 @@
 
         const container = document.getElementById('match-container');
         
-        // --- RAZORPAY POPUP FUNCTION ---
-        function startPayment(matchName, amount) {
+        // --- JOIN & PAYMENT FLOW VARIABLES ---
+        let pendingMatchId = 0;
+        let pendingMatchName = "";
+        let pendingAmount = 0;
+
+        // 1. CLICK JOIN -> OPEN CHECKBOX MODAL
+        function initiateJoin(matchId, matchName, amount) {
             if (!localStorage.getItem('ft_user')) {
                 openAuthModal();
                 return;
             }
+            // Check if already joined
+            if(localStorage.getItem('joined_match_' + matchId)) {
+                alert("You have already joined this match!");
+                return;
+            }
+
+            // Save details
+            pendingMatchId = matchId;
+            pendingMatchName = matchName;
+            pendingAmount = amount;
+
+            // Reset and Show Modal
+            document.getElementById('legalCheck').checked = false;
+            document.getElementById('confirmPayBtn').classList.add('opacity-50', 'cursor-not-allowed');
+            document.getElementById('confirmPayBtn').onclick = null; // Remove old listener
+            
+            document.getElementById('complianceModal').style.display = 'flex';
+        }
+
+        function closeComplianceModal() {
+            document.getElementById('complianceModal').style.display = 'none';
+        }
+
+        // 2. CHECKBOX LOGIC
+        document.getElementById('legalCheck').addEventListener('change', function() {
+            const btn = document.getElementById('confirmPayBtn');
+            if(this.checked) {
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.onclick = startPayment; // Enable Button
+            } else {
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                btn.onclick = null; // Disable Button
+            }
+        });
+
+        // 3. START RAZORPAY PAYMENT
+        function startPayment() {
+            closeComplianceModal(); // Close Checkbox Modal
 
             var options = {
                 "key": RAZORPAY_KEY_ID, 
-                "amount": amount * 100, // Amount in paise
+                "amount": pendingAmount * 100, 
                 "currency": "INR",
                 "name": "FireTourney",
-                "description": "Entry for " + matchName,
+                "description": "Entry for " + pendingMatchName,
                 "image": "https://cdn-icons-png.flaticon.com/512/1055/1055666.png",
                 "handler": function (response){
                     // Success Callback
                     alert("Payment Successful! ID: " + response.razorpay_payment_id);
+                    
+                    // MARK MATCH AS JOINED IN LOCAL STORAGE
+                    localStorage.setItem('joined_match_' + pendingMatchId, 'true');
+                    
+                    // RE-RENDER TO UPDATE BUTTON
+                    renderMatches();
+
                     // Show WhatsApp Modal after success
                     showWaModal();
                 },
@@ -393,7 +490,16 @@
                 let badgeClass = "", badgeText = "", btnClass = "", btnText = "";
                 let buttonAction = "";
 
-                if(match.status === "OPEN") {
+                // CHECK IF USER ALREADY JOINED THIS MATCH
+                const isJoined = localStorage.getItem('joined_match_' + match.id);
+
+                if (isJoined) {
+                    badgeClass = "bg-green-600 text-white";
+                    badgeText = "JOINED";
+                    btnClass = "bg-green-600 border border-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.4)]";
+                    btnText = "✅ JOINED SUCCESSFULLY";
+                    buttonAction = "showWaModal()"; // Clicking again opens Help
+                } else if(match.status === "OPEN") {
                     badgeClass = "bg-blue-600 text-white";
                     badgeText = "OPEN";
                     if (match.isFree) {
@@ -403,7 +509,8 @@
                     } else {
                         btnClass = "bg-blue-600 active:bg-blue-700 text-white shadow-glow-blue";
                         btnText = `Join for ₹${match.entryFee}`;
-                        buttonAction = `startPayment('${match.name}', ${match.entryFee})`;
+                        // NOW CALLS INITIATE JOIN (Check Box Modal)
+                        buttonAction = `initiateJoin(${match.id}, '${match.name}', ${match.entryFee})`;
                     }
                 } else if (match.status === "FULL") {
                     badgeClass = "bg-red-600 text-white";
@@ -535,17 +642,23 @@
             window.addEventListener('load', () => setTimeout(showWaModal, 2500));
         }
 
-        // RULES & MODALS
+        // RULES & MODALS (STATE BAN POLICY ADDED HERE)
         const policies = {
             terms: "<h3>Terms & Conditions</h3><p>Participation restricted to users 18+. One account per user. We reserve the right to ban cheaters.</p>",
             refund: "<h3>Refund Policy</h3><p>Refunds are only issued if a match is cancelled by the admin. No refunds for player disconnection.</p>",
             privacy: "<h3>Privacy Policy</h3><p>We do not share your data. Phone numbers are used for Room ID distribution only via WhatsApp.</p>",
             rules: `
                 <h3 class='text-blue-500 font-bold text-lg mb-2'>⚠️ Tournament Rules</h3>
-                <ul class='list-disc pl-5 space-y-2'>
+                <ul class='list-disc pl-5 space-y-2 text-gray-300'>
                     <li><b>Zero Tolerance:</b> No Teaming, No Hacking, No Scripts. Result = Instant Ban.</li>
                     <li><b>Device:</b> Mobile Only. Emulators are strictly prohibited.</li>
                     <li><b>Proof:</b> Winners must send a screenshot of the results to the Telegram Admin to claim prizes.</li>
+                    
+                    <li class='text-red-400 font-bold'>
+                        🚫 RESTRICTED STATES:
+                        Users from Telangana, Andhra Pradesh, Assam, Odisha, Sikkim, and Nagaland are NOT allowed to play for money due to state laws.
+                    </li>
+
                     <li class='text-yellow-500 font-bold border border-yellow-500/30 p-2 rounded bg-yellow-500/10'>
                         💰 Prize Pool Clause: The announced Prize Pool is based on a full lobby (48 players). If participation is low (less than 40 players), the Prize Pool will be adjusted/reduced accordingly.
                     </li>
